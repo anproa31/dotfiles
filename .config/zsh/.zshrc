@@ -98,12 +98,15 @@ export PISTOL_CHROMA_STYLE=vim
 export PF_INFO="ascii title os uptime pkgs memory palette"
 export PATH="$HOME/.local/bin:$PATH"
 
-export ANDROID_HOME=$HOME/Android/Sdk
-export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+export ANDROID_HOME=$HOME/.android/SDK/
+export ANDROID_SDK_ROOT=$HOME/.android/SDK/
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+export PATH=$PATH:$JAVA_HOME
 
 # Aliases
 alias vim="nvim"
