@@ -40,6 +40,8 @@ bspc rule -a Thunar desktop='^4' follow=on
 bspc rule -a Godot desktop='^1' follow=on
 bspc rule -a jetbrains-idea-ce desktop ='^2' follow=on
 
+bspc rule -a vlc state=floating center=on
+
 # Startup
 killall -9 feh sxhkd dunst double_border picom polybar xsettingsd
 
