@@ -2,12 +2,8 @@ local wezterm = require("wezterm")
 local success, wal_colors = pcall(dofile, os.getenv("HOME") .. "/.cache/wal/colors-wez.lua")
 
 return {
-  -- font = wezterm.font("BlexMono Nerd Font Light", {
-  --   weight = "Bold",
-  -- }),
-
-  font = wezterm.font("JetBrainsMono NF", {
-    weight = "Medium",
+  font = wezterm.font("MartianMono NF", {
+    weight = "Regular",
   }),
 
   colors = success and wal_colors or nil,

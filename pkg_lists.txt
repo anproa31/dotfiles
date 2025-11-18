@@ -35,6 +35,7 @@ ttf-jetbrains-mono-nerd
 ttf-mplus-git
 ttf-ms-win11-auto
 ttf-nerd-fonts-symbols-mono
+ttf-martian-mono-nerd
 xclip
 xorg-fonts-encodings
 xorg-server
