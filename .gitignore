@@ -2,4 +2,7 @@
 .zcompdump*
 backup/
 .config/zsh/Plugins/*
+.config/winapps/*
+.config/windows-config/*
+
 

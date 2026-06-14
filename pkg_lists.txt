@@ -32,8 +32,6 @@ noto-fonts-emoji
 noto-fonts-extra
 ttf-jetbrains-mono
 ttf-jetbrains-mono-nerd
-ttf-mplus-git
-ttf-ms-win11-auto
 ttf-nerd-fonts-symbols-mono
 ttf-martian-mono-nerd
 xclip
@@ -54,3 +52,9 @@ xsettingsd
 zoxide
 nwg-look
 papirus-icon-theme-git
+ibus
+ibus-bamboo
+networkmanager
+bluez
+bluez-utils
+libnotify

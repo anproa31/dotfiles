@@ -1,0 +1,19 @@
+# #!/bin/sh
+#
+# pgrep obsidian > /dev/null
+# if  [ $? -eq 0 ]; then
+#   bspc desktop -f '^5'
+# else
+#   obsidian &
+# fi
+#
+#
+#
+#
+#!/bin/sh
+
+if pgrep -x obsidian > /dev/null; then
+    bspc desktop -f '^5'
+else
+    obsidian &
+fi

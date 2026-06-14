@@ -2,7 +2,7 @@
 
 pgrep firefox > /dev/null
 if  [ $? -eq 0 ]; then
-  bspc desktop -f '^6'
+  bspc desktop -f '^3'
 else
   firefox &
 fi

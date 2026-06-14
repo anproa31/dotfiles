@@ -31,32 +31,55 @@ super + shift + s
 # bspwm hotkeys
 #
 
-# open brower and focus on desktop 6 
 super + b 
   ~/.config/bspwm/scripts/browser   
 
-# open discord and focus on desktop 5 
-super + d 
-  ~/.config/bspwm/scripts/discord   
+super + r 
+  ~/.config/bspwm/scripts/parsec  
+
+super + shift + k 
+  ~/.config/bspwm/scripts/cheatsheet
+
+super + n
+  ~/.config/bspwm/scripts/obsidian
+
+# theme switcher (wallpaper + colors + login screen)
+alt + t
+  ~/.config/bspwm/scripts/theme
+
+super + p 
+  ~/.config/polybar/Scripts/power_menu.sh
+
 
 # open file manager
 super + e 
   thunar
+
+
+# super + g
+# 	wezterm start --class LazyGitTerminal -e lazygit
+
+super + c 
+  terax
+
+super + i
+  $HOME/.config/polybar/Scripts/ibus_toggle.sh toggle
 
 # quit/restart bspwm
 super + alt + {q,r}
 	bspc {quit,wm -r}
 
 # close and kill
-super + q
+super + w
 	bspc node -c
 
-super + shift + q
+super + shift + w
 	bspc node -k
 
 # alternate between the tiled and monocle layout
 super + m
 	bspc desktop -l next
+
 
 #
 # state/flags
@@ -82,7 +105,10 @@ alt + {h, l}
 
 # cycle desktop
 super + Tab
-	bspc desktop -f next.local
+  bspc desktop -f next.local 
+
+super + shift + Tab
+  bspc monitor -f next
 
 # focus or send to the given desktop
 super + {_,shift + }{1-9,0}

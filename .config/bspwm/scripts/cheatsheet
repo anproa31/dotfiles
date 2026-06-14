@@ -1,0 +1,24 @@
+#!/bin/sh
+
+BSPWM_MD="$HOME/Downloads/bspwm.md"
+NVIM_MD="$HOME/Downloads/nvim.md"
+
+CHOSEN=$(echo -e "1. bspwm Shortcuts\n2. Neovim Shortcuts" | rofi -dmenu -i -p "Choose Cheatsheet:" -theme-str 'window {width: 30%;}')
+
+case "$CHOSEN" in
+    *bspwm*)
+        FILE_PATH="$BSPWM_MD"
+        ;;
+    *Neovim*)
+        FILE_PATH="$NVIM_MD"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+
+if [ -f "$FILE_PATH" ]; then
+    wezterm start --class CheatsheetTerminal -e sh -c "GLOW_PAGER='less -R' glow '$FILE_PATH'; echo '\n--- Nhấn Enter để đóng cửa sổ ---'; read"
+else
+    notify-send "Lỗi" "Không tìm thấy file markdown tại: $FILE_PATH"
+fi
