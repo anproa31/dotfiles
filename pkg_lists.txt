@@ -23,9 +23,11 @@ pavucontrol
 pulseaudio
 pulseaudio-alsa
 sddm
+qt6-5compat
 shotgun
 slop
 stow
+lxsession
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
@@ -35,6 +37,7 @@ ttf-jetbrains-mono-nerd
 ttf-nerd-fonts-symbols-mono
 ttf-martian-mono-nerd
 xclip
+xf86-input-libinput
 xorg-fonts-encodings
 xorg-server
 xorg-server-common
@@ -47,6 +50,7 @@ xorg-xprop
 xorg-xrandr
 xorg-xrdb
 xorg-xset
+xorg-xsetroot
 xorgproto
 xsettingsd
 zoxide
