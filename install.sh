@@ -114,6 +114,24 @@ install_grub_theme() {
 }
 
 # ---------------------------------------------------------------------------
+install_fetch() {
+  if command -v fetch >/dev/null 2>&1; then
+    msg "manas140 fetch already installed - skipping"
+    return
+  fi
+  msg "Installing manas140 fetch"
+  tmp="$(mktemp -d)"
+  if git clone --depth 1 https://github.com/Manas140/fetch.git "$tmp/fetch"; then
+    # install the binary system-wide; the repo's config is NOT touched, so the
+    # stowed ~/.config/fetch/conf stays in charge
+    sudo install -Dm755 "$tmp/fetch/fetch" /usr/local/bin/fetch
+  else
+    echo "  (could not clone manas140/fetch - skipping)"
+  fi
+  rm -rf "$tmp"
+}
+
+# ---------------------------------------------------------------------------
 backup_config() {
   msg "Backing up any clashing configs"
   TIMESTAMP=$(date +%Y%m%d%H%M%S)
@@ -142,6 +160,33 @@ stow_dotfiles() {
 }
 
 # ---------------------------------------------------------------------------
+configure_battery() {
+  msg "Detecting battery/adapter names for the polybar battery module"
+  mod="$DEFAULT_DIR/.config/polybar/modules.ini"
+  [ -f "$mod" ] || return
+
+  bat=""
+  adp=""
+  for d in /sys/class/power_supply/*; do
+    [ -e "$d/type" ] || continue
+    t="$(cat "$d/type" 2>/dev/null)"
+    [ -z "$bat" ] && [ "$t" = "Battery" ] && bat="$(basename "$d")"
+    [ -z "$adp" ] && [ "$t" = "Mains" ]   && adp="$(basename "$d")"
+  done
+
+  if [ -n "$bat" ]; then
+    sed -i "s/^battery = .*/battery = $bat/" "$mod"
+    echo "  battery = $bat"
+  else
+    echo "  no battery found (desktop?) - leaving battery module as-is"
+  fi
+  if [ -n "$adp" ]; then
+    sed -i "s/^adapter = .*/adapter = $adp/" "$mod"
+    echo "  adapter = $adp"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 apply_theme() {
   msg "Generating the default yotsugi pywal colourscheme"
   # works on a bare TTY too; -n skips wallpaper (we set it via feh below)
@@ -163,8 +208,10 @@ enable_services
 install_touchpad
 install_sddm_theme
 install_grub_theme
+install_fetch
 backup_config
 stow_dotfiles
+configure_battery
 apply_theme
 
 msg "All done! Reboot to land on the SDDM login screen and pick the bspwm session."
