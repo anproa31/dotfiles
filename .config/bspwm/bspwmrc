@@ -104,7 +104,13 @@ xsettingsd &
 ibus-daemon -drx &
 lxpolkit &
 
-~/.fehbg &
+# Restore the saved wallpaper; on a fresh install ~/.fehbg doesn't exist yet,
+# so fall back to the default wallpaper (and create ~/.fehbg via feh).
+if [ -x ~/.fehbg ]; then
+  ~/.fehbg &
+else
+  feh --bg-fill ~/Wallpapers/Yotsugi1080.png &
+fi
 ~/.config/bspwm/scripts/double_border &
 ~/.config/dunst/dunst_pywal &
 

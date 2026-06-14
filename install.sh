@@ -61,6 +61,23 @@ install_packages() {
 }
 
 # ---------------------------------------------------------------------------
+set_default_shell() {
+  zsh_path="$(command -v zsh)"
+  if [ -z "$zsh_path" ]; then
+    msg "zsh not found - skipping default shell change"
+    return
+  fi
+  target_user="${SUDO_USER:-$(id -un)}"
+  current_shell="$(getent passwd "$target_user" | cut -d: -f7)"
+  if [ "$current_shell" = "$zsh_path" ]; then
+    msg "Default shell already zsh - skipping"
+    return
+  fi
+  msg "Setting zsh as the default shell for $target_user"
+  sudo chsh -s "$zsh_path" "$target_user"
+}
+
+# ---------------------------------------------------------------------------
 enable_services() {
   msg "Enabling services: sddm, NetworkManager, bluetooth"
   sudo systemctl enable sddm.service
@@ -141,6 +158,7 @@ cd "$DEFAULT_DIR"
 
 install_yay
 install_packages
+set_default_shell
 enable_services
 install_touchpad
 install_sddm_theme
