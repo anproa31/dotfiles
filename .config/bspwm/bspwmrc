@@ -109,7 +109,7 @@ lxpolkit &
 if [ -x ~/.fehbg ]; then
   ~/.fehbg &
 else
-  feh --bg-fill ~/Wallpapers/Yotsugi1080.png &
+  feh --no-fehbg --bg-fill ~/repo/dotfiles/Wallpapers/Yotsugi.png &
 fi
 ~/.config/bspwm/scripts/double_border &
 ~/.config/dunst/dunst_pywal &

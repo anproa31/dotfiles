@@ -188,12 +188,22 @@ configure_battery() {
 
 # ---------------------------------------------------------------------------
 apply_theme() {
-  msg "Generating the default yotsugi pywal colourscheme"
-  # works on a bare TTY too; -n skips wallpaper (we set it via feh below)
-  wal --theme yotsugi -n || echo "  (pywal step skipped)"
+  msg "Setting yotsugi as the default theme"
+  wallpaper="$DEFAULT_DIR/Wallpapers/Yotsugi.png"
+
+  # Colours: regenerate ~/.cache/wal/* from the yotsugi palette (works on a TTY).
+  wal -q -n --theme yotsugi || echo "  (pywal step skipped)"
+
+  # Wallpaper: persist to ~/.fehbg with --bg-fill so it covers the whole screen
+  # on first login (same as the alt+t theme switcher does).
+  cat > "$USER_HOME/.fehbg" <<EOF
+#!/bin/sh
+feh --no-fehbg --bg-fill '$wallpaper'
+EOF
+  chmod +x "$USER_HOME/.fehbg"
 
   if [ -n "$DISPLAY" ]; then
-    feh --bg-center "$USER_HOME/Wallpapers/Yotsugi1080.png" || true
+    "$USER_HOME/.fehbg" || true
     xsetroot -cursor_name left_ptr || true
   fi
 }
