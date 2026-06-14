@@ -1,0 +1,19 @@
+# #!/bin/sh
+#
+# pgrep parsecd > /dev/null
+# if  [ $? -eq 0 ]; then
+#   bspc desktop -f '^6'
+# else
+#   parsecd  &
+# fi
+
+#!/bin/sh
+
+pkill -f parsecd 2>/dev/null
+
+sleep 0.2
+
+parsecd &
+
+bspc desktop -f '^6'
+

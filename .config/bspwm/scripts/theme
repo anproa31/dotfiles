@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#
+# Theme switcher — rofi menu (with wallpaper previews) that changes the
+# system colorscheme, wallpaper, and SDDM login theme in one shot.
+#
+# Usage:
+#   theme            # open the rofi picker (bound to alt + t)
+#   theme <name>     # apply a theme directly (yotsugi | lucy | pbuoc)
+#
+set -euo pipefail
+
+DOTS="$HOME/repo/dotfiles"
+WALL_DIR="$DOTS/Wallpapers"
+SCHEME_DIR="$HOME/.config/wal/colorschemes/dark"
+SDDM_DIR="$HOME/.config/sddm"
+SDDM_THEME="$SDDM_DIR/themes/yotsugi" # the SDDM QML "engine" (contents get swapped)
+STATE="$HOME/.cache/theme_current"
+
+# Theme registry.
+#   name -> wallpaper | scheme | fg(login) | bg(login) | accent1 | accent2 | label
+theme_data() {
+  case "$1" in
+  yotsugi) echo "Yotsugi.png|yotsugi|#F7EFE3|#121118|#92C8C9|#F0C674|Yotsugi" ;;
+  kogecha2) echo "kogecha2.jpg|yotsugi|#F7EFE3|#121118|#92C8C9|#F0C674|Kogecha2" ;;
+  lucy) echo "lucy.png|lucy|#C8D3F5|#11111B|#99B5F5|#DDB2D6|Lucy" ;;
+  pbuoc) echo "pbuoc.png|pbuoc|#E9D5C4|#1B1917|#E2A471|#E9C1B3|Pbuoc" ;;
+  *) return 1 ;;
+  esac
+}
+THEMES=(yotsugi lucy pbuoc kogecha2)
+
+notify() { command -v dunstify >/dev/null 2>&1 && dunstify -r 9090 -t 2500 "Theme" "$1" || true; }
+
+# Build the rofi menu: one big wallpaper thumbnail per theme.
+pick() {
+  local t wall label
+  for t in "${THEMES[@]}"; do
+    IFS='|' read -r wall _ _ _ _ _ label <<<"$(theme_data "$t")"
+    printf '%s\0icon\x1f%s\n' "$label" "$WALL_DIR/$wall"
+  done | rofi -dmenu -i -p "Theme" -show-icons -no-custom \
+    -theme-str "listview { columns: 3; lines: 1; spacing: 1.2em; cycle: true; scrolling-method: 1; }
+                    element { orientation: vertical; padding: 0.6em; }
+                    element-icon { size: 9em; }
+                    element-text { horizontal-align: 0.5; vertical-align: 0.5; }
+                    window { width: 72%; }"
+}
+
+apply() {
+  local name="$1" wall scheme fg bg a1 a2 label
+  IFS='|' read -r wall scheme fg bg a1 a2 label <<<"$(theme_data "$name")" || {
+    echo "Unknown theme: $name" >&2
+    exit 1
+  }
+  local wallp="$WALL_DIR/$wall"
+
+  # 1. Colors — regenerate ~/.cache/wal/* from the curated palette (no wallpaper set).
+  wal -q -n --theme "$SCHEME_DIR/$scheme.json"
+
+  # 2. Wallpaper — persist to ~/.fehbg and apply now.
+  cat >"$HOME/.fehbg" <<EOF
+#!/bin/sh
+feh --no-fehbg --bg-fill '$wallp'
+EOF
+  chmod +x "$HOME/.fehbg"
+  feh --no-fehbg --bg-fill "$wallp"
+
+  # 3. Live desktop reload — bspwmrc re-reads xrdb colors and relaunches
+  #    polybar (new colors-polybar.ini), feh, dunst, double_border, picom.
+  bspc wm -r
+
+  # 4. wezterm — touch its config so open windows reload colors-wez.lua.
+  touch "$HOME/.config/wezterm/wezterm.lua" 2>/dev/null || true
+
+  # 5. SDDM login theme — swap the engine's bg + colors, then install as root.
+  cp -f "$wallp" "$SDDM_THEME/bg.png"
+  cat >"$SDDM_THEME/theme.conf" <<EOF
+[General]
+type=image
+font=PixelifySans
+fontSize=13
+
+background=bg.png
+
+color=$fg
+backgroundColor=$bg
+mTeal=$a1
+mOrange=$a2
+EOF
+  if command -v pkexec >/dev/null 2>&1; then
+    pkexec bash "$SDDM_DIR/sddm.sh" >/dev/null 2>&1 &&
+      notify "$label applied (desktop + login)" ||
+      notify "$label applied (login skipped)"
+  else
+    notify "$label applied (no pkexec for login)"
+  fi
+
+  echo "$name" >"$STATE"
+}
+
+main() {
+  if [ $# -ge 1 ]; then
+    apply "$1"
+    return
+  fi
+  local label sel=""
+  label="$(pick)" || exit 0
+  [ -z "$label" ] && exit 0
+  # map label back to theme name
+  local t l
+  for t in "${THEMES[@]}"; do
+    IFS='|' read -r _ _ _ _ _ _ l <<<"$(theme_data "$t")"
+    [ "$l" = "$label" ] && sel="$t" && break
+  done
+  [ -z "$sel" ] && exit 0
+  apply "$sel"
+}
+
+main "$@"

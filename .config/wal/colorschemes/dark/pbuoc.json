@@ -1,0 +1,27 @@
+{
+    "wallpaper": "~/repo/dotfiles/Wallpapers/pbuoc.png",
+    "alpha": "100",
+    "special": {
+        "background": "#1B1917",
+        "foreground": "#E9D5C4",
+        "cursor": "#E9D5C4"
+    },
+    "colors": {
+        "color0": "#1B1917",
+        "color1": "#996950",
+        "color2": "#6D5A48",
+        "color3": "#E2A471",
+        "color4": "#AE8768",
+        "color5": "#E9C1B3",
+        "color6": "#C89478",
+        "color7": "#E9D5C4",
+        "color8": "#544131",
+        "color9": "#B3805F",
+        "color10": "#8A7258",
+        "color11": "#F0B888",
+        "color12": "#C69A7A",
+        "color13": "#F0D0C0",
+        "color14": "#D8A888",
+        "color15": "#FFF5EC"
+    }
+}

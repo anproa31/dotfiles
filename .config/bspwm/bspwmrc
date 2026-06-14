@@ -1,56 +1,113 @@
 #! /bin/sh
 export _JAVA_AWT_WM_NONREPARENTING=1
 
+export GTK_IM_MODULE=ibus
+export QT_IM_MODULE=ibus
+export XMODIFIERS=@im=ibus
+
 xrdb ~/.Xresources
-getcolors () {
-	FOREGROUND=$(xrdb -query | grep '*.foreground:'| awk '{print $NF}')
-	BACKGROUND=$(xrdb -query | grep '*.background:'| awk '{print $NF}')
-	COL0=$(xrdb -query | grep '*.color0:'| awk '{print $NF}')
-	COL1=$(xrdb -query | grep '*.color1:'| awk '{print $NF}')
-	COL2=$(xrdb -query | grep '*.color2:'| awk '{print $NF}')
-	COL3=$(xrdb -query | grep '*.color3:'| awk '{print $NF}')
-	COL4=$(xrdb -query | grep '*.color4:'| awk '{print $NF}')
-	COL5=$(xrdb -query | grep '*.color5:'| awk '{print $NF}')
-	COL6=$(xrdb -query | grep '*.color6:'| awk '{print $NF}')
-	COL7=$(xrdb -query | grep '*.color7:'| awk '{print $NF}')
+getcolors() {
+  FOREGROUND=$(xrdb -query | grep '*.foreground:' | awk '{print $NF}')
+  BACKGROUND=$(xrdb -query | grep '*.background:' | awk '{print $NF}')
+  COL0=$(xrdb -query | grep '*.color0:' | awk '{print $NF}')
+  COL1=$(xrdb -query | grep '*.color1:' | awk '{print $NF}')
+  COL2=$(xrdb -query | grep '*.color2:' | awk '{print $NF}')
+  COL3=$(xrdb -query | grep '*.color3:' | awk '{print $NF}')
+  COL4=$(xrdb -query | grep '*.color4:' | awk '{print $NF}')
+  COL5=$(xrdb -query | grep '*.color5:' | awk '{print $NF}')
+  COL6=$(xrdb -query | grep '*.color6:' | awk '{print $NF}')
+  COL7=$(xrdb -query | grep '*.color7:' | awk '{print $NF}')
 }
 getcolors
 
 # Bspwm config
-bspc monitor -d 一 二 三 四 五 六 
+# bspc monitor eDP1 -d 一 二 三 四 五 六
+#
+# if xrandr --query | grep "HDMI1 connected"; then
+#   xrandr --output eDP1 --auto --primary --output HDMI1 --auto --right-of eDP1
+#   bspc monitor HDMI1 -d 七 八 九 十
+# else
+#   xrandr --output eDP1 --auto --primary --output HDMI1 --off
+#
+#   for desktop in 七 八 九 十; do
+#     if bspc query -D -d "$desktop" >/dev/null 2>&1; then
+#       for node in $(bspc query -N -d "$desktop" 2>/dev/null); do
+#         bspc node "$node" -d 一
+#       done
+#       bspc desktop "$desktop" --remove
+#     fi
+#   done
+# fi
+INTERNAL=$(xrandr --query | grep -E "^eDP" | head -1 | cut -d' ' -f1)
+EXTERNAL=$(xrandr --query | grep -E "^HDMI" | grep " connected" | head -1 | cut -d' ' -f1)
 
-bspc config border_width        10 
-bspc config window_gap          12
+# Bspwm config
+bspc monitor "$INTERNAL" -d 一 二 三 四 五 六
 
-bspc config focused_border_color "$COL4" 
+if [ -n "$EXTERNAL" ]; then
+  xrandr --output "$INTERNAL" --auto --primary --output "$EXTERNAL" --auto --right-of "$INTERNAL"
+  bspc monitor "$EXTERNAL" -d 七 八 九
+else
+  xrandr --output "$INTERNAL" --auto --primary
+
+  for desktop in 七 八 九 十; do
+    if bspc query -D -d "$desktop" >/dev/null 2>&1; then
+      for node in $(bspc query -N -d "$desktop" 2>/dev/null); do
+        bspc node "$node" -d 一
+      done
+      bspc desktop "$desktop" --remove
+    fi
+  done
+fi
+
+bspc config border_width 10
+bspc config window_gap 12
+
+bspc config focused_border_color "$COL4"
 bspc config normal_border_color "$BACKGROUND"
 bspc config active_border_color "$COL4"
 bspc config presel_feedback_color "$COL3"
 
-bspc config split_ratio          0.5
-bspc config borderless_monocle   true
-bspc config gapless_monocle      true
+bspc config split_ratio 0.5
+bspc config borderless_monocle true
+bspc config gapless_monocle true
 
-bspc rule -a firefox desktop='^6' follow=on 
+bspc rule -a firefox desktop='^3' follow=on
+bspc desktop '^3' --layout monocle
+
+bspc rule -a parsecd desktop='^6' follow=on
 bspc desktop '^6' --layout monocle
 
-bspc rule -a discord desktop='^5' follow=on 
-bspc rule -a Thunar desktop='^4' follow=on 
+bspc rule -a obsidian desktop='^5' follow=on
+bspc desktop '^5' --layout monocle
 
-bspc rule -a Godot desktop='^1' follow=on
-bspc rule -a jetbrains-idea-ce desktop ='^2' follow=on
+#bspc rule -a LazyGitTerminal desktop='^2' follow=on
+#bspc rule -a Terax desktop='^2' state=tiled follow=on
+#bspc config -d '^2' layout tiledspc rule -a terax desktop='^2' follow=on
+
+bspc rule -a Thunar desktop='^4' follow=on
+bspc rule -a CheatsheetTerminal state=floating rectangle=1000x650+460+200 center=on follow=on
 
 bspc rule -a vlc state=floating center=on
+
+bspc rule -a 'Microsoft Windows' desktop='^5' state=floating manage=on border=on center=on
+
+#bspc rule -a zed desktop='^2' follow=on
+#bspc config -d '^2' layout tiledspc rule -a terax desktop='^2' follow=on
 
 # Startup
 killall -9 feh sxhkd dunst double_border picom polybar xsettingsd
 
+xsetroot -cursor_name left_ptr &
 sxhkd &
 xsettingsd &
+ibus-daemon -drx &
+lxpolkit &
 
 ~/.fehbg &
 ~/.config/bspwm/scripts/double_border &
 ~/.config/dunst/dunst_pywal &
 
-polybar &
+~/.config/polybar/launch.sh &
+~/.config/winapps/auto_pause.sh &
 picom --config ~/.config/picom/picom.conf
