@@ -11,13 +11,18 @@
 #    1. install yay (AUR helper) if it is missing
 #    2. install every package in pkg_lists.txt   (incl. qt6-5compat,
 #       xorg-xsetroot, xf86-input-libinput, sddm, networkmanager, ...)
-#    3. enable the system services            -> sddm, NetworkManager, bluetooth
-#    4. install touchpad rules                -> tap-to-click, tap-drag,
+#    3. install SDKMAN, then Java 21 (Temurin) through it
+#       (no JDK comes from pacman - SDKMAN owns every Java version)
+#    4. install the Rust stable toolchain via rustup
+#    5. enable the system services            -> sddm, NetworkManager, bluetooth,
+#                                                docker, tailscale
+#       and add the user to the docker group
+#    6. install touchpad rules                -> tap-to-click, tap-drag,
 #                                                natural scrolling
-#    5. install + select the "yotsugi" SDDM login theme
-#    6. install the GRUB theme
-#    7. back up any clashing configs, then stow the dotfiles into $HOME
-#    8. generate the default "yotsugi" pywal colourscheme + wallpaper
+#    7. install + select the "yotsugi" SDDM login theme
+#    8. install the GRUB theme
+#    9. back up any clashing configs, then stow the dotfiles into $HOME
+#   10. generate the default "yotsugi" pywal colourscheme + wallpaper
 # ===========================================================================
 
 set -e
@@ -55,9 +60,56 @@ install_yay() {
 }
 
 # ---------------------------------------------------------------------------
+install_sdkman() {
+  if [ -d "$USER_HOME/.sdkman" ]; then
+    msg "SDKMAN already installed - skipping"
+    return
+  fi
+  msg "Installing SDKMAN"
+  # pin the target dir so it matches the check above even under sudo;
+  # ~/.config/zsh/.zshrc sources $SDKMAN_DIR/bin/sdkman-init.sh on every shell
+  SDKMAN_DIR="$USER_HOME/.sdkman" curl -s "https://get.sdkman.io" | bash
+}
+
+# ---------------------------------------------------------------------------
+install_java() {
+  JAVA_VERSION="21-tem"   # Temurin 21 LTS
+  sdkman_init="$USER_HOME/.sdkman/bin/sdkman-init.sh"
+
+  if [ ! -s "$sdkman_init" ]; then
+    msg "SDKMAN not found - skipping Java install"
+    return
+  fi
+  if [ -d "$USER_HOME/.sdkman/candidates/java/$JAVA_VERSION" ]; then
+    msg "Java $JAVA_VERSION already installed - skipping"
+    return
+  fi
+
+  msg "Installing Java $JAVA_VERSION via SDKMAN"
+  # `sdk` is a shell function, so source sdkman-init.sh first. sdkman_auto_answer
+  # is set after sourcing (the init sources etc/config, which would reset it) so
+  # the "set as default?" prompt does not block the install.
+  bash -c "set +e; source '$sdkman_init'; sdkman_auto_answer=true; sdk install java $JAVA_VERSION" \
+    || echo "  (Java install failed - run 'sdk install java $JAVA_VERSION' by hand)"
+}
+
+# ---------------------------------------------------------------------------
+install_rust_toolchain() {
+  command -v rustup >/dev/null 2>&1 || { msg "rustup not found - skipping"; return; }
+  if rustup default >/dev/null 2>&1; then
+    msg "Rust toolchain already installed - skipping"
+    return
+  fi
+  # rustup ships no toolchain by default; nvim's conform.nvim calls `rustfmt`
+  # and rust_analyzer needs cargo, both of which come from the stable toolchain
+  msg "Installing the Rust stable toolchain"
+  rustup default stable
+}
+
+# ---------------------------------------------------------------------------
 install_packages() {
   msg "Installing packages from pkg_lists.txt"
-  yay -S --needed --noconfirm - < "$DEFAULT_DIR/pkg_lists.txt"
+  grep -v '^\s*#' "$DEFAULT_DIR/pkg_lists.txt" | grep -v '^\s*$' | yay -S --needed --noconfirm -
 }
 
 # ---------------------------------------------------------------------------
@@ -79,10 +131,26 @@ set_default_shell() {
 
 # ---------------------------------------------------------------------------
 enable_services() {
-  msg "Enabling services: sddm, NetworkManager, bluetooth"
+  msg "Enabling services: sddm, NetworkManager, bluetooth, docker, tailscale"
   sudo systemctl enable sddm.service
   sudo systemctl enable NetworkManager.service
   sudo systemctl enable bluetooth.service
+  sudo systemctl enable docker.socket
+  sudo systemctl enable tailscaled.service
+
+  # let the normal user talk to the docker daemon without sudo
+  target_user="${SUDO_USER:-$(id -un)}"
+  if ! id -nG "$target_user" | grep -qw docker; then
+    msg "Adding $target_user to the docker group (takes effect next login)"
+    sudo usermod -aG docker "$target_user"
+  fi
+
+  # WinPodX runs Windows in a KVM-backed rootless Podman container and needs
+  # /dev/kvm access; `winpodx setup-host` also fixes subuid/subgid mappings.
+  if ! id -nG "$target_user" | grep -qw kvm; then
+    msg "Adding $target_user to the kvm group (needed by WinPodX)"
+    sudo usermod -aG kvm "$target_user"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -213,6 +281,9 @@ cd "$DEFAULT_DIR"
 
 install_yay
 install_packages
+install_sdkman
+install_java
+install_rust_toolchain
 set_default_shell
 enable_services
 install_touchpad

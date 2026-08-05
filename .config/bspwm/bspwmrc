@@ -90,7 +90,12 @@ bspc rule -a CheatsheetTerminal state=floating rectangle=1000x650+460+200 center
 
 bspc rule -a vlc state=floating center=on
 
+# WinPodX RemoteApp windows -> desktop 5, floating.
+# Both rules are kept on purpose: the window class depends on the FreeRDP build
+# WinPodX uses. Check yours with `xprop WM_CLASS` on a running Word/Excel window
+# and drop whichever rule does not match.
 bspc rule -a 'Microsoft Windows' desktop='^5' state=floating manage=on border=on center=on
+bspc rule -a winpodx desktop='^5' state=floating manage=on border=on center=on
 
 #bspc rule -a zed desktop='^2' follow=on
 #bspc config -d '^2' layout tiledspc rule -a terax desktop='^2' follow=on
@@ -115,5 +120,4 @@ fi
 ~/.config/dunst/dunst_pywal &
 
 ~/.config/polybar/launch.sh &
-~/.config/winapps/auto_pause.sh &
 picom --config ~/.config/picom/picom.conf

@@ -105,8 +105,7 @@ export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-export PATH=$PATH:$JAVA_HOME
+# JAVA_HOME + PATH are set by sdkman (sourced near the bottom of this file)
 
 # Aliases
 alias vim="nvim"
@@ -129,16 +128,22 @@ alias status="systemctl status"
 alias warp="toggle_service warp-svc"
 
 
-# WinApps aliases
-alias wastart="docker compose --file ~/.config/windows-config/docker-compose.yaml start"
-alias wastop="docker compose --file ~/.config/windows-config/docker-compose.yaml stop"
-alias wapause="docker compose --file ~/.config/windows-config/docker-compose.yaml pause"
-alias waunpause="docker compose --file ~/.config/windows-config/docker-compose.yaml unpause"
-alias warestart="docker compose --file ~/.config/windows-config/docker-compose.yaml restart"
-alias wakill="docker compose --file ~/.config/windows-config/docker-compose.yaml kill"
-alias walogs="docker compose --file ~/.config/windows-config/docker-compose.yaml logs -f"
+# WinPodX aliases - Windows apps as native Linux windows
+# pod lifecycle: winpodx owns the container, there is no compose file to point at
+alias wastart="winpodx pod start"
+alias wastop="winpodx pod stop"
+alias wapause="winpodx pod pause"
+alias waunpause="winpodx pod resume"
+alias warestart="winpodx pod restart"
+alias wastatus="winpodx pod status"
+alias walogs="winpodx pod wait-ready --logs"
 
-alias wardp="winapps windows > /dev/null 2>&1 & disown"
+# apps
+alias wardp="winpodx app run desktop > /dev/null 2>&1 & disown"
+alias wa="winpodx launch"                # Start-menu style picker
+alias walist="winpodx app list"
+alias warefresh="winpodx app refresh"    # rescan the guest after installing something
+alias wadoctor="winpodx doctor"
 
 
 for sudo_typo in sduo sodu suod soud; do
